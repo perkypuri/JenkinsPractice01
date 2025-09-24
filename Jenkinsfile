@@ -17,11 +17,8 @@ pipeline {
         stage('Deploy Frontend to Tomcat') {
             steps {
                 bat '''
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice" (
-                    rmdir /S /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
-                )
-                mkdir "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
-                xcopy /E /I /Y FrontEnd\\userpractice\\dist\\* "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
+                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice" rmdir /S /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
+                xcopy /E /I /Y "FrontEnd\\userpractice\\build" "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
                 '''
             }
         }
@@ -29,8 +26,8 @@ pipeline {
         // ===== BACKEND BUILD =====
         stage('Build Backend') {
             steps {
-                dir('demo') {
-                    bat 'mvn clean package'
+                dir('BackEnd/demo') {
+                    bat 'mvn clean install'
                 }
             }
         }
@@ -39,26 +36,19 @@ pipeline {
         stage('Deploy Backend to Tomcat') {
             steps {
                 bat '''
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice.war" (
-                    del /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice.war"
-                )
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice" (
-                    rmdir /S /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice"
-                )
-                copy "demo\\target\\userpractice.war" "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\userpractice.war"
+                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\demo.war" del /F /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\demo.war"
+                copy /Y "BackEnd\\demo\\target\\demo.war" "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\demo.war"
                 '''
             }
         }
-
     }
 
     post {
         success {
-            echo 'Frontend + Backend deployed successfully!'
+            echo '✅ Deployment Successful!'
         }
         failure {
-            echo 'Pipeline Failed.'
+            echo '❌ Deployment Failed!'
         }
     }
 }
-
